@@ -262,7 +262,6 @@ def Viterbi(Ptt, Ptw, tag_dict, test_words, test_tags):
 
     return acc
     
-'''
 class posterior_trellis():
     def __init__(self,Ptt, Pwt, tag_dict, test_words):
         self.trellis = []
@@ -306,18 +305,31 @@ class posterior_trellis():
     	best_path = []
         
     	for i in range(1,self.trellis_length):
+            tag_dict_current_position = self.trellis[i][1]
+            best_tag = None
+            best_value = float('-inf')
+            for tag,value in tag_dict_current_position.items():
+                if value > best_value:
+                    best_value = value
+                    best_tag = tag
+
+            best_path.append(best_tag)
 
         return best_path
     		
-'''
-        
+def Posterior(Ptt, Ptw, tag_dict,test_words, test_tags):
 
-def Posterior(Ptt, Ptw, tag_dict):
         '''
 maintain numpy array U[t_i, t]. Dimension is #tag_type x sentence_length
 maintain array BP[t_i, t]. Dimension is #tag_type x sentence_length
         '''
-        Accuracy(test_tags, pred_tags)
+    trellis = posterior_trellis(Ptt, Pwt, tag_dict, test_words)
+    trellis.compute_trellis()
+    pred_tags = trellis.posterior_decode() 
+
+    acc = Accuracy(test_tags, pred_tags)
+
+    return acc
 
 def main(train_file, test_file):
 	Cwt, Ctt, Ct, Cw, Singtt, Singtw, tag_dict, tag_2_idx, tag_set, word_set, N, V = Read_train(train_file)
