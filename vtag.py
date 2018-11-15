@@ -169,13 +169,21 @@ return probablity dictionary: Ptt[('t_i', 't_i-1')], Ptw[('w', 't')]
 			for t_last in tag_set:
 				k = (t, t_last)
 				lam = 1 + Singtt.get(t_last, 0)
-                                print (Ctt.get(k,0) + lam*Ct.get(t,0)/N)/(Ct.get(t_last,0)+lam)
-				Ptt[k] = math.log((Ctt.get(k,0) + lam*Ct.get(t,0)/N)/(Ct.get(t_last,0)+lam))
+#                                if Ct.get(t,0)>0:
+#                                    print Ctt.get(k,0) + lam*Ct.get(t,0)/N
+#                                    print Ct.get(t,0)
+#                                    print Ct.get(t_last,0)+lam
+				Ptt[k] = math.log(float(Ctt.get(k,0) + lam*float(Ct.get(t,0))/N)/(Ct.get(t_last,0)+lam))
+#                                else:
+#                                    Ptt[k] = -float('inf')
 		for w in word_set:
 			for t in tag_set:
 				k = (w, t)
 				lam = 1 + Singtw.get(t, 0)
-				Ptw[k] = math.log((Cwt.get(k,0) + lam*((Cw.get(w,0)+1)/(N+V)))/(Ct.get(t,0)+lam))
+#                                if Cw.get(w,0)>0:
+                                Ptw[k] = math.log(float(Cwt.get(k,0) + lam*(float(Cw.get(w,0)+1)/(N+V)))/(Ct.get(t,0)+lam))
+#                                else:
+#                                    Ptw[k]=-float('inf')
 	elif mode==3:
                 T = len(tag_set)
                 lam = 1
@@ -424,7 +432,7 @@ def Perplexity(Ptt, Ptw, test_words, test_tags):
 def main(train_file, test_file):
 	Cwt, Ctt, Ct, Cw, Singtt, Singtw, tag_dict, tag_2_idx, tag_set, word_set, N, V = Read_train(train_file)
         #print Cwt, Ctt, Ct, Cw, Singtt, Singtw, tag_dict, tag_2_idx, tag_set, word_set, N, V
-	Ptt, Ptw = Smoother(Cwt, Ctt, Ct, Cw, Singtt, Singtw, word_set, tag_set, N, V, mode=3)
+	Ptt, Ptw = Smoother(Cwt, Ctt, Ct, Cw, Singtt, Singtw, word_set, tag_set, N, V, mode=2)
         #for k in Ptt:
         #    print math.exp(Ptt[k]), k
         #for k in Ptw:
