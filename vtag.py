@@ -252,6 +252,7 @@ def Posterior(Ptt, Ptw, tag_dict):
 maintain numpy array U[t_i, t]. Dimension is #tag_type x sentence_length
 maintain array BP[t_i, t]. Dimension is #tag_type x sentence_length
 '''
+   
 	Accuracy(test_tags, pred_tags)
 
 def main(train_file, test_file):
