@@ -1,4 +1,7 @@
-
+import math
+import numpy as np
+import sys
+import copy
 
 def count_add(entry, dic):
 	if entry not in dic:
@@ -7,11 +10,11 @@ def count_add(entry, dic):
 		dic[entry] += 1
 
 def Read_train(train_file):
-'''
+        '''
 Count dictionary: Cwt[('w', 't')], Ctt[('t_i', 't_i-1')], Ct['t']
 Singuton dictionary: Singtt, Singtw
 Tag dictionary: tag_dict['w']
-'''
+        '''
 	Cwt = {}
 	Ctt = {}
 	Ct = {}
@@ -43,7 +46,7 @@ Tag dictionary: tag_dict['w']
 
 		# Ctt, Singtt
 		if (t,t_last) not in Ctt:
-			C[(t,t_last)] = 1
+			Ctt[(t,t_last)] = 1
 			if t_last not in Singtt:
 				Singtt[t_last] = 1
 			else:
@@ -68,7 +71,7 @@ Tag dictionary: tag_dict['w']
 
 		# tag_dict
 		if w not in tag_dict:
-			tag_dict = [t]
+			tag_dict[w] = [t]
 		elif t not in tag_dict[w]:
 			tag_dict[w].append(t)
 
@@ -101,9 +104,9 @@ Tag dictionary: tag_dict['w']
 
 
 def Read_test(test_file):
-'''
+        '''
 return two lists of same length: test_words, test_tags
-'''
+        '''
 	test_words = []
 	test_tags = []
 	f = open(test_file, 'r')
@@ -115,18 +118,18 @@ return two lists of same length: test_words, test_tags
 	f.close()
 	return test_words, test_tags
 
-def log_(a)
+def log_(a):
 	if a==0:
 		return -float('inf')
 	else:
 		return math.log(a)
 
 def Smoother(Cwt, Ctt, Ct, Cw, Singtt, Singtw, word_set, tag_set, N, V, mode):
-'''
+        '''
 mode=1: no smooth
 mode=2: One count smoothing
 return probablity dictionary: Ptt[('t_i', 't_i-1')], Ptw[('w', 't')]
-'''
+        '''
 	Ptt = {}
 	Ptw = {}
 
@@ -142,9 +145,9 @@ return probablity dictionary: Ptt[('t_i', 't_i-1')], Ptw[('w', 't')]
 			for t in tag_set:
 				k = (w, t)
 				if (Cwt.get(k, 0)>0):
-					ptw[k] = math.log(float(Cwt[k])/Ct[k[1]])
+					Ptw[k] = math.log(float(Cwt[k])/Ct[k[1]])
 				else:
-					ptw[k] = -float('inf')
+					Ptw[k] = -float('inf')
 
 	elif mode==2:
 		for t in tag_set:
@@ -204,7 +207,7 @@ class vertibi_trellis():
                 #loop over tags in previous position
                 temp_best = 0
                 for tag_1,_ in self.trellis[i-1][1].items():
-                    p = Ptt[(tag, tag_1)] + Ptw[(self.test_words[i], tag)]
+                    p = self.Ptt[(tag, tag_1)] + self.Ptw[(self.test_words[i], tag)]
                     #mu for tag_1 in previous position
                     mu_1 = self.trellis[i-1][1][tag_1][0]
                     mu = p + mu_1
@@ -219,7 +222,7 @@ class vertibi_trellis():
         
         #get the best tag in last position:
         best_value = 0
-        best_tag = none
+        best_tag = None
         for tag,value in self.trellis[-1][1].items():
             if value[0] > best_value:
                 best_value = value[0]
@@ -235,9 +238,9 @@ class vertibi_trellis():
         return best_path
 
 def Viterbi(Ptt, Ptw, tag_dict, test_words, test_tags):
-'''
+    '''
 maintain numpy di A[t_i, t], B[t_i, i]. Dimension is #tag_type x sentence_length
-'''
+    '''
     trellis = vertibi_trellis(Ptt, Ptw, test_words, tag_dict)
     trellis.compute_trellis()
     pred_tags = trellis.return_best_path()
@@ -248,16 +251,18 @@ maintain numpy di A[t_i, t], B[t_i, i]. Dimension is #tag_type x sentence_length
     
 
 def Posterior(Ptt, Ptw, tag_dict):
-'''
+        '''
 maintain numpy array U[t_i, t]. Dimension is #tag_type x sentence_length
 maintain array BP[t_i, t]. Dimension is #tag_type x sentence_length
-'''
+        '''
    
 	Accuracy(test_tags, pred_tags)
 
 def main(train_file, test_file):
 	Cwt, Ctt, Ct, Cw, Singtt, Singtw, tag_dict, tag_2_idx, tag_set, word_set, N, V = Read_train(train_file)
+        print Cwt, Ctt, Ct, Cw, Singtt, Singtw, tag_dict, tag_2_idx, tag_set, word_set, N, V
 	Ptt, Ptw = Smoother(Cwt, Ctt, Ct, Cw, Singtt, Singtw, word_set, tag_set, N, V, mode=1)
+        print Ptt, Ptw
 	test_words, test_tags = Read_test(test_file)
 	acc = Viterbi(Ptt, Ptw, tag_dict, test_words, test_tags)
 	print(acc)
