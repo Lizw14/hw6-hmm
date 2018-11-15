@@ -220,7 +220,7 @@ class vertibi_trellis():
                         self.trellis[i][1][tag][0] = mu
                         self.trellis[i][1][tag][1] = tag_1
                 
-                #print(self.trellis[i][1][tag])        
+                print(self.trellis[i][1][tag])        
 
     def return_best_path(self):
         best_path = []
@@ -237,15 +237,15 @@ class vertibi_trellis():
         #insert the best tag for last position
         best_path.insert(0, best_tag)
         print("best path")
-        print(best_path)
         i = self.trellis_length-1
         
 
 
-        print(self.trellis)
+        #print(self.trellis)
         for i in range(self.trellis_length-1, 0, -1):
             last_tag = self.trellis[i][1][best_path[0]][1]
             best_path.insert(0,last_tag)     
+        print(best_path)
 
         return best_path
 
@@ -309,10 +309,9 @@ class posterior_trellis():
 
         return best_path
     		
-
+'''
         
 
-'''
 def Posterior(Ptt, Ptw, tag_dict):
         '''
 maintain numpy array U[t_i, t]. Dimension is #tag_type x sentence_length
@@ -322,9 +321,10 @@ maintain array BP[t_i, t]. Dimension is #tag_type x sentence_length
 
 def main(train_file, test_file):
 	Cwt, Ctt, Ct, Cw, Singtt, Singtw, tag_dict, tag_2_idx, tag_set, word_set, N, V = Read_train(train_file)
-        print Cwt, Ctt, Ct, Cw, Singtt, Singtw, tag_dict, tag_2_idx, tag_set, word_set, N, V
+        #print Cwt, Ctt, Ct, Cw, Singtt, Singtw, tag_dict, tag_2_idx, tag_set, word_set, N, V
 	Ptt, Ptw = Smoother(Cwt, Ctt, Ct, Cw, Singtt, Singtw, word_set, tag_set, N, V, mode=1)
-        print Ptt, Ptw
+        print Ptt
+        print Ptw
 	test_words, test_tags = Read_test(test_file)
 	acc = Viterbi(Ptt, Ptw, tag_dict, test_words, test_tags)
 	print(acc)
