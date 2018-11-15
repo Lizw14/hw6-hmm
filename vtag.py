@@ -128,7 +128,7 @@ mode=2: One count smoothing
 return probablity dictionary: Ptt[('t_i', 't_i-1')], Ptw[('w', 't')]
 '''
 	Ptt = {}
-	Pwt = {}
+	Ptw = {}
 
 	if mode==1:
 		for t in tag_set:
@@ -142,9 +142,9 @@ return probablity dictionary: Ptt[('t_i', 't_i-1')], Ptw[('w', 't')]
 			for t in tag_set:
 				k = (w, t)
 				if (Cwt.get(k, 0)>0):
-					pwt[k] = math.log(float(Cwt[k])/Ct[k[1]])
+					ptw[k] = math.log(float(Cwt[k])/Ct[k[1]])
 				else:
-					pwt[k] = -float('inf')
+					ptw[k] = -float('inf')
 
 	elif mode==2:
 		for t in tag_set:
@@ -156,14 +156,14 @@ return probablity dictionary: Ptt[('t_i', 't_i-1')], Ptw[('w', 't')]
 			for t in tag_set:
 				k = (w, t)
 				lam = 1 + Singtw(t)
-				Pwt[k] = math.log((Cwt.get(k,0) + lam*((Cw.get(w,0)+1)/(N+V)))/(Ct.get(t,0)+lam))
+				Ptw[k] = math.log((Cwt.get(k,0) + lam*((Cw.get(w,0)+1)/(N+V)))/(Ct.get(t,0)+lam))
 			
 
 	for t in tag_set:
-		Pwt[('###', t)] = -float('inf')
-	Pwt[('###', '###')] = 0
+		Ptw[('###', t)] = -float('inf')
+	Ptw[('###', '###')] = 0
 
-	return Ptt, Pwt
+	return Ptt, Ptw
 
 
 def Accuracy(gt_tags, pred_tags):
@@ -177,10 +177,10 @@ def Accuracy(gt_tags, pred_tags):
 
 
 class vertibi_trellis():
-    def __init__(self, Ptt, Pwt, test_words, tag_dict):
+    def __init__(self, Ptt, Ptw, test_words, tag_dict):
         self.trellis = []
         self.Ptt = Ptt
-        self.Pwt = Pwt
+        self.Ptw = Ptw
         self.tag_dict = tag_dict
         self.test_words = test_words
         self.trellis_length = len(self.test_words)
@@ -238,7 +238,7 @@ def Viterbi(Ptt, Ptw, tag_dict, test_words, test_tags):
 '''
 maintain numpy di A[t_i, t], B[t_i, i]. Dimension is #tag_type x sentence_length
 '''
-    trellis = vertibi_trellis(Ptt, Pwt, test_words, tag_dict)
+    trellis = vertibi_trellis(Ptt, Ptw, test_words, tag_dict)
     trellis.compute_trellis()
     pred_tags = trellis.return_best_path()
 
@@ -256,9 +256,10 @@ maintain array BP[t_i, t]. Dimension is #tag_type x sentence_length
 
 def main(train_file, test_file):
 	Cwt, Ctt, Ct, Cw, Singtt, Singtw, tag_dict, tag_2_idx, tag_set, word_set, N, V = Read_train(train_file)
-	Ptt, Pwt = Smoother(Cwt, Ctt, Ct, Cw, Singtt, Singtw, word_set, tag_set, N, V, mode=1)
-	#Read_test(test_file)
-	#Viterbi()
+	Ptt, Ptw = Smoother(Cwt, Ctt, Ct, Cw, Singtt, Singtw, word_set, tag_set, N, V, mode=1)
+	test_words, test_tags = Read_test(test_file)
+	acc = Viterbi(Ptt, Ptw, tag_dict, test_words, test_tags)
+	print(acc)
 	#Posterior()
 
 if __name__=="__main__":
