@@ -251,6 +251,37 @@ maintain numpy di A[t_i, t], B[t_i, i]. Dimension is #tag_type x sentence_length
     return acc
     
 
+class posterior_trellis():
+    def __init__(self,Ptt, Pwt, tag_dict, test_words):
+        self.trellis = []
+        self.Ptt = Ptt
+        self.Pwt = Pwt
+        self.tag_dict = tag_dict
+        self.test_words = test_words
+        self.trellis_length = len(test_words)
+
+        for word in test_words:
+            temp_tag_dict = {}
+            for tag in tag_dict[word]:
+                #store alpha and beta for every tag
+                temp_tag_dict[tag] = [0,0]
+
+            self.trellis.append([word,copy.deepcopy(temp_tag_dict)])
+            
+
+    def compute_forward(self):
+            
+        for i in range(self.trellis_length):
+            if i == 0 :
+
+
+    def compute_backward(self):
+
+    def posterior_decode(self):
+
+        return
+
+
 def Posterior(Ptt, Ptw, tag_dict):
 '''
 maintain numpy array U[t_i, t]. Dimension is #tag_type x sentence_length
