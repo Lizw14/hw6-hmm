@@ -200,6 +200,10 @@ class vertibi_trellis():
             #tag_dict[key] = [best mu,backpointer]
             self.trellis.append([self.test_words[i],copy.deepcopy(state_dict)])
             
+            if i == 0:
+                self.trellis[0] = [self.test_words[0],{"###":[0,None]}]
+                continue
+
             for tag in self.tag_dict[self.test_words[i]]:
                 #loop over tags in previous position
                 temp_best = 0
