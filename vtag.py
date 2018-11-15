@@ -110,7 +110,9 @@ return two lists of same length: test_words, test_tags
 	test_words = []
 	test_tags = []
 	f = open(test_file, 'r')
+
 	#line  = f.readline()
+
 	for line in f:
 		w, t = line.strip().split('/')
 		test_words.append(w)
@@ -172,10 +174,14 @@ return probablity dictionary: Ptt[('t_i', 't_i-1')], Ptw[('w', 't')]
 def Accuracy(gt_tags, pred_tags):
 	assert len(gt_tags)==len(pred_tags)
 	count = 0
+        denum = len(gt_tags)
 	for idx, gt_t in enumerate(gt_tags):
-		if gt_t==pred_tags[idx]:
-			count += 1
-	acc = float(count)/len(gt_tags)
+            if gt_t=='###':
+                denum -= 1
+                count -= 1
+	    if gt_t==pred_tags[idx]:
+    		count += 1
+	acc = float(count)/(len(gt_tags))
 	return acc
 
 
@@ -227,7 +233,7 @@ class vertibi_trellis():
                         self.trellis[i][1][tag][0] = mu
                         self.trellis[i][1][tag][1] = tag_1
                 
-                #print(self.trellis[i][1][tag])        
+                print(self.trellis[i][1][tag])        
 
     def return_best_path(self):
         best_path = []
@@ -243,16 +249,20 @@ class vertibi_trellis():
 
         #insert the best tag for last position
         best_path.insert(0, best_tag)
+
         #print("best path")
         #print(best_path)
         #i = self.trellis_length-1
+        print("best path")
+
         
 
 
-        print(self.trellis)
+        #print(self.trellis)
         for i in range(self.trellis_length-1, 0, -1):
             last_tag = self.trellis[i][1][best_path[0]][1]
             best_path.insert(0,last_tag)     
+        print(best_path)
 
         return best_path
 
@@ -273,10 +283,10 @@ def Viterbi(Ptt, Ptw, tag_dict, test_words, test_tags):
 
 ''' 
 class posterior_trellis():
-    def __init__(self,Ptt, Pwt, tag_dict, test_words):
+    def __init__(self,Ptt, Ptw, tag_dict, test_words):
         self.trellis = []
         self.Ptt = Ptt
-        self.Pwt = Pwt
+        self.Ptw = Ptw
         self.tag_dict = tag_dict
         self.test_words = test_words
         self.trellis_length = len(test_words)
@@ -285,7 +295,7 @@ class posterior_trellis():
             temp_tag_dict = {}
             for tag in tag_dict[word]:
                 #store alpha and beta for every tag
-                temp_tag_dict[tag] = [0, 0, 0]
+                temp_tag_dict[tag] = [-float('inf'), -float('inf'), -float('inf')]
 
             self.trellis.append([word,copy.deepcopy(temp_tag_dict)])
             
@@ -295,35 +305,40 @@ class posterior_trellis():
         for i in range(1,self.trellis_length):
             for tag in self.tag_dict[self.test_words[i]]:
             	for tag_last in self.tag_dict[self.test_words[i-1]]:
-            		p = self.Ptt[(tag, tag_last)] + self.Ptw[(self.test_words[i], tag)]
-            		self.trellis[i][1][tag][0] += self.trellis[i-1][1][tag_1][0] + p
-        self.Z = self.trellis[self.trellis_length][1]['###'][0]
+            	    p = self.Ptt[(tag, tag_last)] + self.Ptw[(self.test_words[i], tag)]
+            	    self.trellis[i][1][tag][0] = np.logaddexp(self.trellis[i][1][tag][0],(self.trellis[i-1][1][tag_last][0] + p))
+        self.Z = self.trellis[self.trellis_length-1][1]['###'][0]
 
-    	self.trellis[self.trellis_length][1]['###'][1] = 0
+    	self.trellis[self.trellis_length-1][1]['###'][1] = 0
     	for i in range(self.trellis_length-1,0,-1):
-    		for tag in self.tag_dict[self.test_words[i]]:
-            	for tag_last in self.tag_dict[self.test_words[i-1]]:
-            		p = self.Ptt[(tag, tag_last)] + self.Ptw[(self.test_words[i], tag)]
-            		self.trellis[i-1][1][tag_last][1] += self.trellis[i][1][tag][1] + p
+    	    for tag in self.tag_dict[self.test_words[i]]:
+                for tag_last in self.tag_dict[self.test_words[i-1]]:
+            	    p = self.Ptt[(tag, tag_last)] + self.Ptw[(self.test_words[i], tag)]
+            	    self.trellis[i-1][1][tag_last][1] = np.logaddexp(self.trellis[i-1][1][tag_last][1], (self.trellis[i][1][tag][1] + p))
 
         for i in range(1,self.trellis_length):
-        	for tag in self.tag_dict[self.test_words[i]]:
-        		self.trellis[i][1][tag][2] = self.trellis[i][1][tag][0] + self.trellis[i][1][tag][1]
+            for tag in self.tag_dict[self.test_words[i]]:
+        	self.trellis[i][1][tag][2] = self.trellis[i][1][tag][0] + self.trellis[i][1][tag][1]
 
+                print(i, tag, math.exp(self.trellis[i][1][tag][0]),math.exp(self.trellis[i][1][tag][1]))
 
     def posterior_decode(self):
-    	best_path = []
+    	best_path = ['###']
         
     	for i in range(1,self.trellis_length):
             tag_dict_current_position = self.trellis[i][1]
             best_tag = None
             best_value = float('-inf')
             for tag,value in tag_dict_current_position.items():
-                if value > best_value:
-                    best_value = value
+                if value[2] > best_value:
+                    best_value = value[2]
                     best_tag = tag
+            print(i, math.exp(best_value), best_tag)
 
             best_path.append(best_tag)
+        
+        print('best_path')
+        print(best_path)
 
         return best_path     
 
@@ -335,6 +350,15 @@ maintain numpy array U[t_i, t]. Dimension is #tag_type x sentence_length
 maintain array BP[t_i, t]. Dimension is #tag_type x sentence_length
     
     trellis = posterior_trellis(Ptt, Pwt, tag_dict, test_words)
+        return best_path
+    		
+def Posterior(Ptt, Ptw, tag_dict,test_words, test_tags):
+
+    
+maintain numpy array U[t_i, t]. Dimension is #tag_type x sentence_length
+maintain array BP[t_i, t]. Dimension is #tag_type x sentence_length
+    
+    trellis = posterior_trellis(Ptt, Ptw, tag_dict, test_words)
     trellis.compute_trellis()
     pred_tags = trellis.posterior_decode() 
 
@@ -348,11 +372,13 @@ def main(train_file, test_file):
 	Cwt, Ctt, Ct, Cw, Singtt, Singtw, tag_dict, tag_2_idx, tag_set, word_set, N, V = Read_train(train_file)
         #print Cwt, Ctt, Ct, Cw, Singtt, Singtw, tag_dict, tag_2_idx, tag_set, word_set, N, V
 	Ptt, Ptw = Smoother(Cwt, Ctt, Ct, Cw, Singtt, Singtw, word_set, tag_set, N, V, mode=1)
-        print Ptt, Ptw
+        #print Ptt
+        #print Ptw
 	test_words, test_tags = Read_test(test_file)
 	acc = Viterbi(Ptt, Ptw, tag_dict, test_words, test_tags)
+	#print(acc)
+        #acc =Posterior(Ptt, Ptw, tag_dict,test_words, test_tags)
 	print(acc)
-	#Posterior()
 
 if __name__=="__main__":
 	main(sys.argv[1], sys.argv[2])
