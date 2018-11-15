@@ -178,7 +178,7 @@ def Accuracy(gt_tags, pred_tags):
                 count -= 1
 	    if gt_t==pred_tags[idx]:
     		count += 1
-	acc = float(count)/(len(gt_tags))
+	acc = float(count)/denum
 	return acc
 
 
