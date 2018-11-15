@@ -231,7 +231,7 @@ class vertibi_trellis():
         #insert the best tag for last position
         best_path.insert(0, best_tag)
 
-        for i in range(self.trellis_length, 0, -1):
+        for i in range(self.trellis_length-1, 0-1, -1):
             last_tag = self.trellis[i][1][best_path[0]][1]
             best_path.insert(0,last_tag)     
 
