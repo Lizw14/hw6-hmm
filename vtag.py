@@ -267,22 +267,41 @@ class posterior_trellis():
             temp_tag_dict = {}
             for tag in tag_dict[word]:
                 #store alpha and beta for every tag
-                temp_tag_dict[tag] = [0,0]
+                temp_tag_dict[tag] = [0, 0, 0]
 
             self.trellis.append([word,copy.deepcopy(temp_tag_dict)])
             
 
-    def compute_forward(self):
-            
-        for i in range(self.trellis_length):
-            if i == 0 :
+    def compute_trellis(self):
+        self.trellis[0][1]['###'][0] = 0
+        for i in range(1,self.trellis_length):
+            for tag in self.tag_dict[self.test_words[i]]:
+            	for tag_last in self.tag_dict[self.test_words[i-1]]:
+            		p = self.Ptt[(tag, tag_last)] + self.Ptw[(self.test_words[i], tag)]
+            		self.trellis[i][1][tag][0] += self.trellis[i-1][1][tag_1][0] + p
+        self.Z = self.trellis[self.trellis_length][1]['###'][0]
 
+    	self.trellis[self.trellis_length][1]['###'][1] = 0
+    	for i in range(self.trellis_length-1,0,-1):
+    		for tag in self.tag_dict[self.test_words[i]]:
+            	for tag_last in self.tag_dict[self.test_words[i-1]]:
+            		p = self.Ptt[(tag, tag_last)] + self.Ptw[(self.test_words[i], tag)]
+            		self.trellis[i-1][1][tag_last][1] += self.trellis[i][1][tag][1] + p
 
-    def compute_backward(self):
+        for i in range(1,self.trellis_length):
+        	for tag in self.tag_dict[self.test_words[i]]:
+        		self.trellis[i][1][tag][2] = self.trellis[i][1][tag][0] + self.trellis[i][1][tag][1]
+
 
     def posterior_decode(self):
+    	best_path = []
+        
+    	for i in range(1,self.trellis_length):
 
-        return
+        return best_path
+    		
+
+        
 
 
 def Posterior(Ptt, Ptw, tag_dict):
