@@ -37,7 +37,7 @@ def Accuracy(gt_tags, pred_tags):
 
 
 
-Class vertibi_trellis():
+class vertibi_trellis():
     def __init__(self, Ptt, Pwt, test_words, tag_dict):
         self.trellis = []
         self.Ptt = Ptt
