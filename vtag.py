@@ -98,7 +98,7 @@ Tag dictionary: tag_dict['w']
 	for k in Cw:
 		N += Cw[k]
 
-	tag_dict['###'] = list(tag_set)
+	#tag_dict['###'] = list(tag_set)
 
 	return Cwt, Ctt, Ct, Cw, Singtt, Singtw, tag_dict, tag_2_idx, tag_set, word_set, N, V
 
@@ -201,15 +201,15 @@ class vertibi_trellis():
             #build trellis    
             #trellis[i][1] = tag_dict 
             #tag_dict[key] = [best mu,backpointer]
-            self.trellis.append([self.test_words[i],copy.deepcopy(state_dict)])
+            self.trellis.append([self.test_words[i],state_dict])
             
             if i == 0:
-                self.trellis[0] = [self.test_words[0],{"###":[0,None]}]
+                self.trellis[0] = [self.test_words[0],{"###":[float('-inf'),None]}]
                 continue
-
+            
             for tag in self.tag_dict[self.test_words[i]]:
                 #loop over tags in previous position
-                temp_best = 0
+                temp_best=float('-inf')
                 for tag_1,_ in self.trellis[i-1][1].items():
                     p = self.Ptt[(tag, tag_1)] + self.Ptw[(self.test_words[i], tag)]
                     #mu for tag_1 in previous position
@@ -219,14 +219,16 @@ class vertibi_trellis():
                     if mu > temp_best:
                         self.trellis[i][1][tag][0] = mu
                         self.trellis[i][1][tag][1] = tag_1
-                    
+                
+                #print(self.trellis[i][1][tag])        
 
     def return_best_path(self):
         best_path = []
         
         #get the best tag in last position:
-        best_value = 0
+        best_value = float('-inf')
         best_tag = None
+
         for tag,value in self.trellis[-1][1].items():
             if value[0] > best_value:
                 best_value = value[0]
@@ -234,16 +236,23 @@ class vertibi_trellis():
 
         #insert the best tag for last position
         best_path.insert(0, best_tag)
+        print("best path")
+        print(best_path)
+        i = self.trellis_length-1
+        
 
-        for i in range(self.trellis_length-1, 0-1, -1):
+
+        print(self.trellis)
+        for i in range(self.trellis_length-1, 0, -1):
             last_tag = self.trellis[i][1][best_path[0]][1]
             best_path.insert(0,last_tag)     
 
         return best_path
 
+
 def Viterbi(Ptt, Ptw, tag_dict, test_words, test_tags):
     '''
-maintain numpy di A[t_i, t], B[t_i, i]. Dimension is #tag_type x sentence_length
+    maintain numpy di A[t_i, t], B[t_i, i]. Dimension is #tag_type x sentence_length
     '''
     trellis = vertibi_trellis(Ptt, Ptw, test_words, tag_dict)
     trellis.compute_trellis()
@@ -253,7 +262,7 @@ maintain numpy di A[t_i, t], B[t_i, i]. Dimension is #tag_type x sentence_length
 
     return acc
     
-
+'''
 class posterior_trellis():
     def __init__(self,Ptt, Pwt, tag_dict, test_words):
         self.trellis = []
@@ -303,14 +312,13 @@ class posterior_trellis():
 
         
 
-
+'''
 def Posterior(Ptt, Ptw, tag_dict):
         '''
 maintain numpy array U[t_i, t]. Dimension is #tag_type x sentence_length
 maintain array BP[t_i, t]. Dimension is #tag_type x sentence_length
         '''
-   
-	Accuracy(test_tags, pred_tags)
+        Accuracy(test_tags, pred_tags)
 
 def main(train_file, test_file):
 	Cwt, Ctt, Ct, Cw, Singtt, Singtw, tag_dict, tag_2_idx, tag_set, word_set, N, V = Read_train(train_file)
