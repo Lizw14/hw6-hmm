@@ -110,7 +110,7 @@ return two lists of same length: test_words, test_tags
 	test_words = []
 	test_tags = []
 	f = open(test_file, 'r')
-	line  = f.readline()
+	#line  = f.readline()
 	for line in f:
 		w, t = line.strip().split('/')
 		test_words.append(w)
@@ -204,19 +204,26 @@ class vertibi_trellis():
             self.trellis.append([self.test_words[i],state_dict])
             
             if i == 0:
-                self.trellis[0] = [self.test_words[0],{"###":[float('-inf'),None]}]
+                self.trellis[0] = [self.test_words[0],{"###":[0,None]}]
                 continue
             
             for tag in self.tag_dict[self.test_words[i]]:
                 #loop over tags in previous position
                 temp_best=float('-inf')
-                for tag_1,_ in self.trellis[i-1][1].items():
+                for tag_1 in self.trellis[i-1][1]:
+                    print(tag_1 +"to:/t" + tag )
+                    print(self.Ptt[(tag, tag_1)])
+                    print(self.test_words[i] +"to: \t" + tag)
+                    print(self.Ptw[(self.test_words[i], tag)])
                     p = self.Ptt[(tag, tag_1)] + self.Ptw[(self.test_words[i], tag)]
-                    #mu for tag_1 in previous position
+                    print(p)
                     mu_1 = self.trellis[i-1][1][tag_1][0]
+                    print(mu_1)
                     mu = p + mu_1
+                    print(mu)
                     
                     if mu > temp_best:
+                        temp_best = mu
                         self.trellis[i][1][tag][0] = mu
                         self.trellis[i][1][tag][1] = tag_1
                 
@@ -236,9 +243,9 @@ class vertibi_trellis():
 
         #insert the best tag for last position
         best_path.insert(0, best_tag)
-        print("best path")
-        print(best_path)
-        i = self.trellis_length-1
+        #print("best path")
+        #print(best_path)
+        #i = self.trellis_length-1
         
 
 
@@ -261,7 +268,10 @@ def Viterbi(Ptt, Ptw, tag_dict, test_words, test_tags):
     acc = Accuracy(test_tags, pred_tags)
 
     return acc
-    
+
+
+
+''' 
 class posterior_trellis():
     def __init__(self,Ptt, Pwt, tag_dict, test_words):
         self.trellis = []
@@ -315,18 +325,15 @@ class posterior_trellis():
 
             best_path.append(best_tag)
 
-        return best_path
-    		
+        return best_path     
 
-        
 
 
 def Posterior(Ptt, Ptw, tag_dict,test_words, test_tags):
-
-        '''
+     
 maintain numpy array U[t_i, t]. Dimension is #tag_type x sentence_length
 maintain array BP[t_i, t]. Dimension is #tag_type x sentence_length
-        '''
+    
     trellis = posterior_trellis(Ptt, Pwt, tag_dict, test_words)
     trellis.compute_trellis()
     pred_tags = trellis.posterior_decode() 
@@ -334,10 +341,12 @@ maintain array BP[t_i, t]. Dimension is #tag_type x sentence_length
     acc = Accuracy(test_tags, pred_tags)
 
     return acc
+'''
+
 
 def main(train_file, test_file):
 	Cwt, Ctt, Ct, Cw, Singtt, Singtw, tag_dict, tag_2_idx, tag_set, word_set, N, V = Read_train(train_file)
-        print Cwt, Ctt, Ct, Cw, Singtt, Singtw, tag_dict, tag_2_idx, tag_set, word_set, N, V
+        #print Cwt, Ctt, Ct, Cw, Singtt, Singtw, tag_dict, tag_2_idx, tag_set, word_set, N, V
 	Ptt, Ptw = Smoother(Cwt, Ctt, Ct, Cw, Singtt, Singtw, word_set, tag_set, N, V, mode=1)
         print Ptt, Ptw
 	test_words, test_tags = Read_test(test_file)
